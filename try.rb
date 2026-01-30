@@ -1627,9 +1627,17 @@ if __FILE__ == $0
       emit_script(cmd_clone!(ARGV, tries_path))
     when 'worktree'
       ARGV.shift
-      repo = ARGV.shift
-      repo_dir = repo && repo != 'dir' ? File.expand_path(repo) : Dir.pwd
-      full_path = worktree_path(tries_path, repo_dir, ARGV.join(' '))
+      first_arg = ARGV.shift
+      # Check if first arg is an existing directory with .git (repo path)
+      # Otherwise treat it as the custom name
+      if first_arg && File.directory?(first_arg) && File.exist?(File.join(first_arg, '.git'))
+        repo_dir = File.expand_path(first_arg)
+        custom_name = ARGV.join(' ')
+      else
+        repo_dir = Dir.pwd
+        custom_name = [first_arg, *ARGV].compact.join(' ')
+      end
+      full_path = worktree_path(tries_path, repo_dir, custom_name)
       emit_script(script_worktree(full_path, repo_dir == Dir.pwd ? nil : repo_dir))
     when 'cd'
       ARGV.shift
@@ -1652,9 +1660,17 @@ if __FILE__ == $0
       end
     end
   when 'worktree'
-    repo = ARGV.shift
-    repo_dir = repo && repo != 'dir' ? File.expand_path(repo) : Dir.pwd
-    full_path = worktree_path(tries_path, repo_dir, ARGV.join(' '))
+    first_arg = ARGV.shift
+    # Check if first arg is an existing directory with .git (repo path)
+    # Otherwise treat it as the custom name
+    if first_arg && File.directory?(first_arg) && File.exist?(File.join(first_arg, '.git'))
+      repo_dir = File.expand_path(first_arg)
+      custom_name = ARGV.join(' ')
+    else
+      repo_dir = Dir.pwd
+      custom_name = [first_arg, *ARGV].compact.join(' ')
+    end
+    full_path = worktree_path(tries_path, repo_dir, custom_name)
     # Explicit worktree command always emits worktree script
     emit_script(script_worktree(full_path, repo_dir == Dir.pwd ? nil : repo_dir))
     exit 0
